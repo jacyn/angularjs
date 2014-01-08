@@ -1,0 +1,137 @@
+<nav class="navbar navbar navbar-static-top " role="navigation">
+    <form role="form" class="form-inline" name="formQuery" ng-submit="submitQuery()">
+      <div class="form-group">
+
+        <label for="table_name" class="col-xs-1 control-label">Table</label>
+        <div class="col-sm-2">
+					<select-table></select-table>
+		      <span class="label label-danger" ng-show="formQuery.tableName.$error.required">Table is required.</span>
+        </div>
+
+        <label for="filter-where" class="col-xs-1 control-label">Where</label>
+        <div class="col-sm-2">
+					<input type="text" class="form-control" id="filter-where" ng-model="query.filter.where" placeholder="eg. id = '1'">
+        </div>
+
+        <label for="filter-order_by" class="col-xs-1 control-label">Order By</label>
+        <div class="col-sm-2">
+        	<input type="text" class="form-control" id="filter-order_by" ng-model="query.filter.order_by" placeholder="eg. id DESC">
+        </div>
+
+        <label for="filter-limit" class="col-xs-1 control-label">Limit By </label>
+        <div class="col-sm-1">
+        	<input type="text" class="form-control" id="filter-limit" ng-init="query.filter.limit = 10" ng-model="query.filter.limit" placeholder="eg. 10">
+        </div>
+
+        <div class="hidden-lg hidden-md hidden-sm">&nbsp;</div>
+        <div class="col-sm-1">
+					<button type="submit" class="btn btn-primary">SUBMIT</button>
+        </div>
+			</div>
+    </form>
+
+</nav>
+
+<a href="" ng-click="addRow()"><i class="glyphicon glyphicon-plus"></i> Add Row</a> | 
+<a href="" ng-click="setPredicate(''); setReverse(false);"><i class="glyphicon glyphicon-sort"></i> Reset Sort</a> | 
+<a href="" ng-click="resetScopeVariables()"><i class="glyphicon glyphicon-refresh"></i> Reset Filter</a>
+
+<div ng-if="table.results" class="table-responsive">
+	<table class="table table-bordered table-hover table-condensed">
+		<thead>
+			<tr>
+				<th> <i class="glyphicon glyphicon-trash"></i> </th>
+				<th ng-repeat="table in table.results" role="button" ng-click="setPredicate(table.Field)">
+					<a href="">{{table.Field}}</a>
+				</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="row in data.results | orderBy:predicate:reverse">
+				<td>
+					<input type="checkbox" ng-if="row.id" ng-model="pendingDelete[row.index]">
+				</td>
+				<td ng-repeat="table in table.results">
+					<div ng-if="table.Key == 'PRI'">
+						{{row[table.Field]}}
+					</div>
+					<div ng-if="table.Key != 'PRI'">
+						<ng-switch on="edit[row.index][table.Field]">
+							<div ng-switch-when="true">
+								<textarea	class="form-control" rows="3" ng-model="$parent.data.results[row.index][table.Field]" unfocus="disableEdit(row.index, table.Field)"></textarea>
+							</div>
+							<div ng-switch-default ng-click="enableEdit(row.index, table.Field)">
+								{{row[table.Field] || '-'}}
+							</div>
+							<div ng-if="row.id && table.Field == 'cfilename'">
+								<img src="http://ame32.wyrls.net/pl/showimage.pl?filename={{MEDIATYPE[row['cmediatype']]}}/{{row[table.Field]}}" alt="{{row[table.Field]}}" title="{{row[table.Field]}}"/>
+							</div>
+						</ng-switch>
+					</div>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</div>
+
+<p>
+	<form role="form" name="formApply" ng-submit="applyChanges()" ng-if="data.results">
+		<button type="submit" class="btn btn-primary" ng-submit="applyChanges()">Apply Changes</button>
+	</form>
+</p>
+
+<!-- START Confirmation Section -->
+<p>
+	<div class="well well-sm" ng-if="pendingChanges">
+		<form role="form" name="formConfirmChanges" ng-submit="confirmChanges()" class="form-inline">
+			<h3><i class="glyphicon glyphicon-question-sign"></i> Confirm Changes</h3>
+			<div ng-if="!executedPendingChanges">
+				<label>Are you sure you want to apply the changes below?</label>
+				<button type="submit" class="btn btn-default">YES</button> 
+				<a role="button" class="btn btn-primary" ng-click="resetPendingChanges()">NO</a>
+			</div>
+			<div ng-if="executedPendingChanges">
+				<i class="glyphicon glyphicon-ok"></i> Performed changes below.
+			</div>
+		</form>
+
+		<p>
+			<ul class="list-group">
+				<li class="list-group-item" ng-repeat="(key,details) in pendingChanges">
+
+					<div ng-if="details.status == 'pending'">
+						<h4 class="list-group-item-heading">
+							<strong>ACTION:</strong> {{details.action | uppercase}}
+						</h4>
+						<p>
+							<strong>VALUES:</strong>
+							<span ng-repeat="(column, value) in details.values" ng-if="column != 'index'">
+								`{{column}}={{value}}`, 
+							</span>
+						</p>
+					</div>
+
+					<div ng-if="details.status != 'pending'">
+						
+						<div>Executed Statement: <code>{{details.status.sql_statement}}</code></div>
+						<div ng-if="details.status.errors">
+
+							<i class="glyphicon glyphicon-remove"></i>
+							{{details.status.errors.message}}
+						</div>
+						<div ng-if="details.status.results" ng-init="status = details.status.results">
+
+							<i class="glyphicon glyphicon-ok"></i>
+							<div>Affected Rows: {{status.affectedRows}}</div>
+							<div ng-if="status.insertId"> Insert Id : {{status.insertId}}</div>
+							<div>Result Message: {{status.message}}</div>
+						</div>
+
+					</div>
+				</li>
+			</ul>
+		</p>
+	</div>
+</p>
+
+<!-- END Confirmation Section -->

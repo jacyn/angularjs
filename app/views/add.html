@@ -1,0 +1,36 @@
+<div class="panel panel-default">
+
+  <div class="panel-heading">ADD TABLE {{tableName}}</div>
+
+  <div class="panel-body"> 
+
+    <div class="alert alert-danger" ng-if="data.errors">
+      <h4>ERROR</h4>
+      <p>{{response.errors.message}}</p>
+    </div>
+
+    <div class="alert alert-success" ng-if="data.results">
+      <h4>SUCCESS</h4>
+      <p>Insert ID: {{response.results.insertId}}</p>
+    </div>
+
+    <form role="form" class="form-horizontal" name="form-add-data" ng-init="postData.values = {}" ng-submit="submitData()">
+
+      <div class="form-group" ng-repeat="table in table.results" ng-if="table.Key != 'PRI'">
+        <label for="{{table.Field}}" class="col-sm-2 control-label">{{table.Field}}</label>
+        <div class="col-sm-10">
+          <input type="text" class="form-control" id="{{table.Field}}" ng-model="postData.values[table.Field]">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="col-sm-offset-2 col-sm-10">
+          <button type="submit" class="btn btn-primary">Save</button>
+          <a href="/dataman/#/query/" class="btn btn-default">Cancel</a>
+        </div>
+      </div>
+
+    </form>
+  </div>
+
+</div>

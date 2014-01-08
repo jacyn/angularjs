@@ -1,0 +1,75 @@
+<script>
+$(function() {
+	$("#sqlFile").change(function(e) {
+			var myFile = e.target.files[0];
+			var reader = new FileReader();
+			reader.onload = function(e) {
+				$("#sqlStatement").val(e.target.result).trigger("input");
+			};
+			reader.readAsText(myFile)
+	});
+})
+</script>
+
+<p>
+	<form class="form-horizontal" role="form" name="formExecuteSql" ng-submit="executeSql()">
+		<legend>SQL STATEMENT</legend>
+		<label for="sql_file">Browse SQL File: </label>
+		<input type="file" id="sqlFile" name="sqlFile" ng-model="sqlFile">
+		<textarea id="sqlStatement" name="sqlStatement" class="form-control" rows="6" placeholder="Enter SQL Statement here...OR Browse to display SQL File here..." ng-model="sqlStatement" required></textarea>
+
+		<div class="row">
+			<div class="col-md-4">
+				<span class="label label-danger" ng-show="formExecuteSql.sqlStatement.$error.required">SQL Statement is required.</span>
+			</div>
+			<div class="col-md-4 col-md-offset-4">
+				<button type="submit" class="btn btn-primary pull-right">Execute SQL Statement(s)</button>
+			</div>
+		</div>
+
+	</form>
+	<div class="well well-sm" ng-if="pendingStatements">
+		<form role="form" name="formConfirmExecute" ng-submit="confirmExecute()" class="form-inline">
+			<h3><i class="glyphicon glyphicon-question-sign"></i> Confirm Execute</h3>
+			<div ng-if="!executedPendingStatements">
+				<label>Are you sure you want to apply the SQL Statement below?</label>
+				<button type="submit" class="btn btn-default">YES</button> 
+				<a role="button" class="btn btn-primary" ng-click="resetPendingStatements()">NO</a> 
+			</div>
+			<div ng-if="executedPendingStatements">
+				 <i class="glyphicon glyphicon-ok"></i> Executed SQL Statements. See results below.
+			</div>
+		</form>
+
+		<p>
+			<ul class="list-group">
+				<li class="list-group-item" ng-repeat="(key,details) in pendingStatements">
+
+					<div ng-if="details.status == 'pending'">
+						<h4 class="list-group-item-heading">
+							<strong>SQL Statement:</strong> <small><code>{{details.sql_statement}};</code></small>
+						</h4>
+					</div>
+
+					<div ng-if="details.status != 'pending'">
+						
+						<div>Executed Statement: <code>{{details.status.sql_statement}};</code></div>
+						<div ng-if="details.status.errors">
+
+							<i class="glyphicon glyphicon-remove"></i> {{details.status.errors.message}}
+						</div>
+						<div ng-if="details.status.results" ng-init="status = details.status.results">
+
+							<i class="glyphicon glyphicon-ok"></i> Correct SQL Syntax
+							<div ng-if="status.length >= 0">Go to <a href="/dataman/#/query/">Query Page to Select Data</a></div>
+							<div>Affected Rows: {{status.affectedRows}}</div>
+							<div ng-if="status.insertId"> Insert Id : {{status.insertId}}</div>
+							<div>Result Message: {{status.message}}</div>
+						</div>
+
+					</div>
+				</li>
+			</ul>
+		</p>
+	</div>
+</p>
